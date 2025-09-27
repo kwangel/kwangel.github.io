@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Katie's CS180 Project 2</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Quicksand', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #fff0f6;
+            color: #333;
+        }
+
+        header {
+            background: linear-gradient(to right, #ffb6c1, #ffc0cb, #ff69b4);
+            padding: 30px 20px;
+            text-align: center;
+            color: white;
+            border-bottom: 4px solid #ff85a2;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.5em;
+        }
+
+        .content {
+            padding: 30px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .question-section {
+            background: white;
+            margin: 30px 0;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            text-align: left;
+        }
+
+        .question-header {
+            background: linear-gradient(to right, #ffb6c1, #ffc0cb);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .question-header h2 {
+            margin: 0;
+            font-size: 1.8em;
+        }
+
+        .image-container {
+            max-width: 100%;
+            overflow: auto;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .image-container img {
+            max-width: 80%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .image-caption {
+            font-style: italic;
+            color: #666;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+
+        a {
+            display: inline-block;
+            margin-top: 20px;
+            text-decoration: none;
+            background: #ff85a2;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            transition: background 0.3s ease;
+            font-weight: 600;
+        }
+
+        a:hover {
+            background: #ff5e88;
+        }
+
+        .images-row {
+            display: flex;
+            justify-content: space-evenly;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .back-link {
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        .explanation {
+            margin-bottom: 20px;
+            font-size: 1.05em;
+            line-height: 1.6em;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>CS180 Project 2</h1>
+    </header>
+
+    <div class="content">
+        
+        <div class="question-section">
+            <div class="question-header">
+                <h2>Part 1.1: Convolutions from Scratch!</h2>
+            </div>
+            <p class="explanation">
+                Below is my implementation of the 4 loop and 2 loop convolutions. As expected, the 4-loop version runs slower than the 2-loop version, with runtimes of approximately O(HxWxKxK) and O(HxWxK), respectively. 
+                However, both are significantly slower than optimized built-in convolution function.
+                To handle image boundaries, I implemented zero-padding, which adds a border of zeros around the image. This ensures that the output image has the same dimensions as the input.
+                In contrast, built-in convolution functions offer a variety of padding strategies in addition to zero-padding, including no padding and padding to capture all possible overlaps.
+            </p>
+            <details class="code-section">
+                <summary>Show Implementation Code</summary>
+                <pre><code class="language-python">
+                def compute_padding(kernel_shape):
+                    kh, kw = kernel_shape
+                    return kh // 2, kw // 2
+
+
+                def zero_pad(image, pad_h, pad_w):
+                    if pad_h == 0 and pad_w == 0:
+                        return image
+                    return np.pad(image, ((pad_h, pad_h), (pad_w, pad_w)), mode="constant", constant_values=0)
+
+
+                def convolution_four_loops(image, kernel, padding=True):
+                    img = np.asarray(image, dtype=float)
+                    ker = np.asarray(kernel, dtype=float)
+                    ker = np.flip(ker, axis=(0, 1))
+                    kh, kw = ker.shape
+                    if padding:
+                        pad_h, pad_w = compute_padding((kh, kw))
+                        img_padded = zero_pad(img, pad_h, pad_w)
+                        out_h, out_w = img.shape
+                    else:
+                        img_padded = img
+                        out_h = img.shape[0] - kh + 1
+                        out_w = img.shape[1] - kw + 1
+                    
+                    output = np.zeros((out_h, out_w), dtype=float)
+                    
+                    for i in range(out_h):
+                        for j in range(out_w):
+                            acc = 0.0
+                            for ki in range(kh):
+                                for kj in range(kw):
+                                    ii = i + ki
+                                    jj = j + kj
+                                    acc += img_padded[ii, jj] * ker[ki, kj]
+                            output[i, j] = acc
+                    
+                    return output
+
+
+                def convolution_two_loops(image, kernel, padding=True):
+                    img = np.asarray(image, dtype=float)
+                    ker = np.asarray(kernel, dtype=float)
+                    ker = np.flip(ker, axis=(0, 1))
+                    kh, kw = ker.shape
+                    if padding:
+                        pad_h, pad_w = compute_padding((kh, kw))
+                        img_padded = zero_pad(img, pad_h, pad_w)
+                        out_h, out_w = img.shape
+                    else:
+                        img_padded = img
+                        out_h = img.shape[0] - kh + 1
+                        out_w = img.shape[1] - kw + 1
+                    
+                    output = np.zeros((out_h, out_w), dtype=float)
+                    
+                    for i in range(out_h):
+                        for j in range(out_w):
+                            window = img_padded[i:i + kh, j:j + kw]
+                            output[i, j] = float(np.sum(window * ker))
+                    
+                    return output
+                    </code></pre>
+                </details>
+
+            <div class="images-row">
+                <div class="image-container">
+                    <img src="./media_proj2/output/katie-wang.jpg">
+                     <div class="image-caption">Original</div>
+                </div>
+                <div class="image-container">
+                    <img src="./media_proj2/output/my_convolution_four_loops.jpg">
+                    <div class="image-caption">Convolution with 4 loops</div>
+                </div>
+                <div class="image-container">
+                    <img src="./media_proj2/output/my_convolution_two_loops.jpg">
+                    <div class="image-caption">Convolution with 2 loops</div>
+                </div>
+                <div class="image-container">
+                    <img src="./media_proj2/output/premade_convolution.jpg">
+                    <div class="image-caption">Built in Convolution</div>
+                </div>
+                <div class="image-container">
+                    <img src="./media_proj2/output/dx_convolution.jpg">
+                    <div class="image-caption">Dx Convolution</div>
+                </div>
+                <div class="image-container">
+                    <img src="./media_proj2/output/dy_convolution.jpg">
+                    <div class="image-caption">Dy Convolution</div>
+                </div>
+            </div>   
+        </div> 
+
+
+        <div class="question-section">
+            <div class="question-header">
+                <h2>Part 1.2: Finite Difference Operator</h2>
+            </div>
+            <p class="explanation">
+            I chose to reduce noise in the grass by increasing the threshold when binarizing the gradient magnitude image. 
+            This came at the cost of losing some edge detail in the background buildings.
+            </p>
+
+            <div class="images-row">
+                <div class="image-container">
+                    <img src="./media_proj2/output/dx_convolution_cameraman.jpg">
+                     <div class="image-caption">Dx Convolution</div>
+                </div>
+                <div class="image-container">
+                    <img src="./media_proj2/output/dy_convolution_cameraman.jpg" alt="Result 2">
+                    <div class="image-caption">Dy Convolution</div>
+                </div>
+                <div class="image-container">
+                    <img src="./media_proj2/output/gradient_magnitude_cameraman.jpg" alt="Result 3">
+                    <div class="image-caption">Gradient Magnitude </div>
+                </div>
+                <div class="image-container">
+                    <img src="./media_proj2/output/edge_cameraman.jpg" alt="Result 4">
+                     <div class="image-caption">Edge Image</div>
+                </div>
+            </div>   
+        </div> 
+
+        
+        <div class="question-section">
+            <div class="question-header">
+                <h2>Part 1.3: Derivative of Gaussian (DoG) Filter</h2>
+            </div>
+            <p class="explanation">
+            Blurring the image helps produce cleaner edges compared to using the finite difference method alone. 
+            The results from performing two separate convolutions (Gaussian followed by derivative) and a single convolution with the derivative of Gaussian (DoG) filter are equivalent due to the associativity of convolution: convolving the image with a DoG filter is mathematically the same as first blurring the image and then applying the derivative operator.
+            </p>
+            <div class="images-row">
+                <div class="image-container">
+                    <img src="./media_proj2/output/blurred_cameraman.jpg">
+                    <div class="image-caption">Blurred Cameraman</div>
+                </div>
+                <div class="image-container">
+                    <img src="./media_proj2/output/edge_blurred_cameraman.jpg">
+                     <div class="image-caption">Two Convolution Edge Image</div>
+                </div>
+                <div class="image-container">
+                    <img src="./media_proj2/output/derivative_gaussian_filters.png" width="100%">
+                     <div class="image-caption">Gaussian and DoG Filters</div>
+                </div>
+                <div class="image-container">
+                    <img src="./media_proj2/output/gradient_magnitude_blurred_cameraman.jpg">
+                     <div class="image-caption">Gradient Magnitude</div>
+                </div>
+                <div class="image-container">
+                    <img src="./media_proj2/output/edge_blurred_cameraman_single_convolution.jpg">
+                    <div class="image-caption">Single Convolution Edge Image</div>
+                </div>
+            </div>
+        </div>
+        <div class="question-section">
+            <div class="question-header">
+                <h2>Part 2.1: Image "Sharpening"</h2>
+            </div>
+            <p class="explanation">
+            For an unsharp mask filter, first blur the original image using a Gaussian filter to remove high-frequency content (such as edges and fine details), then subtract the blurred image from the original to isolate these high-frequency details. Adding a scaled version of the high frequencies back to the original image sharpens the result.
+            Increasing the scaling factor amplifies the sharpening effect, but the result doesn't fully restore the original image's sharpness lost during blurring.
+            </p>
+            <div class="images-row">
+                <div class="image-container">
+                    <img src="./media_proj2/output/taj.jpg">
+                    <div class="image-caption">Original</div>
+                </div>
+                <div class="image-container">
+                    <img src="./media_proj2/output/taj_blurred_image.jpg">
+                    <div class="image-caption">Blurred</div>
+                </div>
+                <div class="image-container">
+                    <img src="./media_proj2/output/taj_high_frequency.jpg">
+                     <div class="image-caption">High Frequency</div>
+                </div>
+                <div class="image-container">
+                    <img src="./media_proj2/output/taj_sharpened_image.jpg">
+                     <div class="image-caption">Sharpened</div>
+                </div>
+                <div class="image-container">
+                    <img src="./media_proj2/output/greece.jpg">
+                     <div class="image-caption">Original (from this summer!)</div>
+                </div>
+                <div class="image-container">
+                    <img src="./media_proj2/output/greece_sharpened_image.jpg">
+                    <div class="image-caption">Higher Scaling Factor</div>
+                </div>
+                <div class="image-container">
+                    <img src="./media_proj2/output/greece_sharpened_light.jpg">
+                    <div class="image-caption">Lower Scaling Factor</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="question-section">
+            <div class="question-header">
+                <h2>Part 2.2: Hybrid Images</h2>
+            </div>
+            <div class="images-row">
+                <div class="image-container">
+                    <img src="./media_proj2/output/happy.jpeg"width=25%>
+                    <div class="image-caption">My friend!</div>
+                </div>
+                <div class="image-container">
+                    <img src="./media_proj2/output/smiling_grandma.jpg">
+                    <div class="image-caption">A smiling grandma</div>
+                </div>
+                <div class="image-container">
+                    <img src="./media_proj2/output/young_old_aligned_image1.jpg">
+                    <div class="image-caption">Aligned friend</div>
+                </div>
+                <div class="image-container">
+                    <img src="./media_proj2/output/young_old_aligned_image2.jpg">
+                    <div class="image-caption">Aligned grandma</div>
+                <div class="image-container">
+                    <img src="./media_proj2/output/young_old_low_frequency.jpg">
+                     <div class="image-caption">Low Frequency</div>
+                </div>
+                <div class="image-container">
+                    <img src="./media_proj2/output/young_old_high_frequency.jpg">
+                     <div class="image-caption">High Frequency</div>
+                </div>
+                <div class="image-container">
+                    <img src="./media_proj2/output/young_old_hybrid_image.jpg">
+                     <div class="image-caption">Final Hybrid</div>
+                </div>
+                <div class="image-container">
+                    <img src="./media_proj2/output/friend_and_grandma_fft_analysis.png">
+                    <div class="image-caption">FFT Analysis</div>
+                </div>
+                <div class="image-container">
+                    <img src="./media_proj2/output/angry.jpeg"width=25%>
+                    <div class="image-caption">My friend (but angry)</div>
+                </div>
+                <div class="image-container">
+                    <img src="./media_proj2/output/chipmunk.jpeg"width=25%>
+                    <div class="image-caption">Chipmunk</div>
+                <div class="image-container">
+                    <img src="./media_proj2/output/chipmunk_friend_hybrid_image.jpg">
+                     <div class="image-caption">Chipmunk Friend</div>
+                </div>
+                <div class="image-container">
+                    <img src="./media_proj2/output/DerekPicture.jpg"width=25%>
+                     <div class="image-caption">Derek</div>
+                </div>
+                <div class="image-container">
+                    <img src="./media_proj2/output/nutmeg.jpg"width=25%>
+                     <div class="image-caption">Nutmeg</div>
+                </div>
+                <div class="image-container">
+                    <img src="./media_proj2/output/derek_nutmeg_hybrid_image.jpg">
+                    <div class="image-caption">Derek Nutmeg</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="question-section">
+            <div class="question-header">
+                <h2>Parts 2.3 + 2.4: Gaussian and Laplacian Stacks + Multiresolution Blending</h2>
+            </div>
+            <div class="images-row">
+                <div class="image-container">
+                    <img src="./media_proj2/output/oraple_grid.png">
+                    <div class="image-caption">Oraple Gaussian and Laplacian Stacks</div>
+                </div>
+                <div class="image-container">
+                    <img src="./media_proj2/output/apple.jpeg">
+                    <div class="image-caption">Apple</div>
+                </div>
+                <div class="image-container">
+                    <img src="./media_proj2/output/orange.jpeg">
+                    <div class="image-caption">Orange</div>
+                </div>
+                <div class="image-container">
+                    <img src="./media_proj2/output/oraple_color_blended.jpg">
+                    <div class="image-caption">Oraple!</div>
+                </div>
+                <div class="image-container">
+                    <img src="./media_proj2/output/rainbow_grid.png">
+                    <div class="image-caption">Rainbow Milky Way Gaussian and Laplacian Stacks</div>
+                </div>
+                <div class="image-container">
+                    <img src="./media_proj2/output/rainbow.jpg">
+                    <div class="image-caption">Rainbow</div>
+                <div class="image-container">
+                    <img src="./media_proj2/output/milky_way.jpeg">
+                     <div class="image-caption">Milky Way</div>
+                </div>
+                <div class="image-container">
+                    <img src="./media_proj2/output/rainbow_milky_way_blended.jpg">
+                     <div class="image-caption">Rainbow Milky Way!</div>
+                </div>
+                <div class="image-container">
+                    <img src="./media_proj2/output/tree_color_blended.jpg">
+                     <div class="image-caption">Spring and Autumn</div>
+                </div>
+            </div>
+        </div>
+        <div class="question-section">
+            <div class="question-header">
+                <h2>Reflection</h2>
+            </div>
+            <p class="explanation">
+            I think the most important thing I learned from this project is that images contain details at multiple scales simultaneously, and the key to advanced image processing is separating these details by their frequency components and then recombining them.
+            </p>
+        </div>
+        <div class="back-link">
+            <a href="../index.html">🏠 Back to Home</a>
+        </div>
+    </div>
+
+</body>
+</html>
