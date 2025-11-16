@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Katie's CS180 Project 4</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Quicksand', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #fff0f6;
+            color: #333;
+        }
+
+        header {
+            background: linear-gradient(to right, #ffb6c1, #ffc0cb, #ff69b4);
+            padding: 30px 20px;
+            text-align: center;
+            color: white;
+            border-bottom: 4px solid #ff85a2;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.5em;
+        }
+
+        .content {
+            padding: 30px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .question-section {
+            background: white;
+            margin: 30px 0;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            text-align: left;
+        }
+
+        .question-header {
+            background: linear-gradient(to right, #ffb6c1, #ffc0cb);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .question-header h2 {
+            margin: 0;
+            font-size: 1.8em;
+        }
+
+        .image-container {
+            max-width: 100%;
+            overflow: auto;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .image-container img {
+            max-width: 80%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .image-container video {
+            max-width: 80%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+            width: auto;
+        }
+
+        .image-caption {
+            font-style: italic;
+            color: #666;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+
+        a {
+            display: inline-block;
+            margin-top: 20px;
+            text-decoration: none;
+            background: #ff85a2;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            transition: background 0.3s ease;
+            font-weight: 600;
+        }
+
+        a:hover {
+            background: #ff5e88;
+        }
+
+        .images-row {
+            display: flex;
+            justify-content: space-evenly;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .back-link {
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        .explanation {
+            margin-bottom: 20px;
+            font-size: 1.05em;
+            line-height: 1.6em;
+        }
+
+        .grid-2x2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .grid-2x2 .image-container img {
+            max-width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>CS180 Project 4</h1>
+    </header>
+
+    <div class="content">
+        
+        <div class="question-section">
+            <div class="question-header">
+                <h2>Part 0: Camera Calibration and 3D Scanning</h2>
+            </div>
+            <p class="explanation">
+                Here are 2 screenshots of my camera frustums visualization in Viser.
+            </p>
+            <div class="images-row">
+                <div class="image-container">
+                    <img src="./media_proj4/pokemon_cam_one.png" alt="Camera Frustum Visualization 1">
+                    <div class="image-caption">Camera Frustum Visualization 1</div>
+                </div>
+                <div class="image-container">
+                    <img src="./media_proj4/pokemon_cam_two.png" alt="Camera Frustum Visualization 2">
+                    <div class="image-caption">Camera Frustum Visualization 2</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="question-section">
+            <div class="question-header">
+                <h2>Part 1: Fit a Neural Field to a 2D Image</h2>
+            </div>
+            
+            <h3>Model Architecture</h3>
+            <p class="explanation">
+                My model uses the following architecture:
+                <ul>
+                    <li><strong>Number of layers:</strong> 4 fully connected layers</li>
+                    <li><strong>Width:</strong> 256</li>
+                    <li><strong>Learning rate:</strong> 1e-2</li>
+                    <li><strong>Optimizer:</strong> Adam</li>
+                    <li><strong>Loss function:</strong> Mean Squared Error (MSE)</li>
+                    <li><strong>Positional encoding:</strong> 2D sinusoidal positional encoding with configurable max frequency (default max_freq=10, tested with different values).</li>
+                    <li><strong>Activation:</strong> ReLU for hidden layers, Sigmoid for color output.</li>
+                    <li><strong>Input:</strong> Normalized 2D pixel coordinates (x/width, y/height) with positional encoding.</li>
+                    <li><strong>Output:</strong> RGB color values (normalized to [0, 1]).</li>
+                    <li><strong>Batch size:</strong> 10000</li>
+                    <li><strong>Training iterations:</strong> 2000</li>
+                </ul>
+            </p>
+
+            <h3>Training Progression</h3>
+            <p class="explanation">
+                Training progression visualization on the provided test image (coyote) and one of my own images (capybara).
+            </p>
+            <div class="images-row">
+                <div class="image-container">
+                    <img src="./media_proj4/coyote_progression.png" alt="Coyote Training Progression">
+                    <div class="image-caption">Coyote Training Progression</div>
+                </div>
+                <div class="image-container">
+                    <img src="./media_proj4/capybara_progression.png" alt="Capybara Training Progression">
+                    <div class="image-caption">Capybara Training Progression</div>
+                </div>
+            </div>
+
+            <h3>Final Results: 2x2 Grid</h3>
+            <p class="explanation">
+                Final coyote and capybara for 2 choices of max positional encoding frequency and 2 choices of width.
+            </p>
+            <div class="images-row">
+                <div class="image-container">
+                    <img src="./media_proj4/coyote_2x2_one.png" alt="Coyote 2x2 Grid Results 1">
+                    <div class="image-caption">2x2 Grid Results 1 - Coyote</div>
+                </div>
+                <div class="image-container">
+                    <img src="./media_proj4/coyote_2x2_two.png" alt="Coyote 2x2 Grid Results 2">
+                    <div class="image-caption">2x2 Grid Results 2 - Coyote</div>
+                </div>
+                <div class="image-container">
+                    <img src="./media_proj4/capybara_2x2_one.png" alt="Capybara 2x2 Grid Results 1">
+                    <div class="image-caption">2x2 Grid Results 1 - Capybara</div>
+                </div>
+                <div class="image-container">
+                    <img src="./media_proj4/capybara_2x2_two.png" alt="Capybara 2x2 Grid Results 2">
+                    <div class="image-caption">2x2 Grid Results 2 - Capybara</div>
+                </div>
+            </div>
+
+            <h3>PSNR Curve</h3>
+            <p class="explanation">
+                PSNR curve for training on the coyote image and capybara image.
+            </p>
+            <div class="image-container">
+                <img src="./media_proj4/coyote_psnr.png" alt="Coyote PSNR Curve">
+                <div class="image-caption">PSNR Curve for Coyote Training</div>
+            </div>
+            <div class="image-container">
+                <img src="./media_proj4/capybara_psnr.png" alt="Capybara PSNR Curve">
+                <div class="image-caption">PSNR Curve for Capybara Training</div>
+            </div>
+        </div>
+
+        <div class="question-section">
+            <div class="question-header">
+                <h2>Part 2: Fit a Neural Radiance Field from Multi-view Images</h2>
+            </div>
+            
+            <h3>Implementation Description</h3>
+            <p class="explanation">
+                <strong>Part 2.1 - Ray Generation:</strong> I implemented the `transform`, `pixel_to_camera`, and `pixel_to_ray` functions to convert pixel coordinates to 3D rays in world space. The `transform` function applies the camera-to-world transformation matrix, `pixel_to_camera` inverts the camera projection to get 3D points in camera coordinates, and `pixel_to_ray` combines these to generate ray origins and directions.
+                <br><br>
+                <strong>Part 2.2 - Sampling:</strong> I implemented `sample_along_rays` to sample points along each ray between near and far planes, and supports perturbed sampling. Additionally, in the `RaysDataset` class, I implemented `sample_rays` which randomly samples a specified number of rays from the precomputed rays and returns the corresponding ray origins, directions, and pixel colors for training.
+                <br><br>
+                <strong>Part 2.3 - Dataset:</strong> I created a `RaysDataset` class that precomputes all rays for all images and provides efficient batching. The dataset converts pixel coordinates to rays using the camera intrinsics and extrinsics, and stores the corresponding pixel colors.
+                <br><br>
+                <strong>Part 2.4 - NeRF Model:</strong> I implemented a NeRF model with positional encoding for both 3D coordinates and view directions. The model uses an 8-layer MLP with skip connections, outputs density and color, and uses softplus activation for density (instead of ReLU). Softplus provides smooth, continuous gradients everywhere, which is crucial for volume rendering. ReLU has a hard cutoff at zero that can create discontinuities, while softplus ensures non-negative density values with smooth transitions that enable better gradient flow during training.
+                <br><br>
+                <strong>Part 2.5 - Volume Rendering:</strong> I implemented the `volume_render` function that accumulates colors along rays using the volume rendering equation. The function computes transmittance and weights for each sample point and combines them to produce the final rendered color.
+            </p>
+
+            <h3>Ray Visualization</h3>
+            <p class="explanation">
+                Visualization of rays and samples with cameras.
+            </p>
+            <div class="image-container">
+                <img src="./media_proj4/tractor_rays.png" alt="Ray Visualization">
+                <div class="image-caption">Ray and Sample Visualization with Cameras</div>
+            </div>
+
+            <h3>Training Progression</h3>
+            <p class="explanation">
+                Training progression visualization with predicted images across iterations.
+            </p>
+            <div class="image-container">
+                <img src="./media_proj4/tractor_progression.png" alt="Training Progression">
+                <div class="image-caption">Training Progression with Predicted Images</div>
+            </div>
+
+            <h3>PSNR Curve</h3>
+            <p class="explanation">
+                PSNR curve on the validation set.
+            </p>
+            <div class="image-container">
+                <img src="./media_proj4/traction_psnr.png" alt="Validation PSNR Curve">
+                <div class="image-caption">PSNR Curve on Validation Set</div>
+            </div>
+
+            <h3>Spherical Rendering Video</h3>
+            <p class="explanation">
+                Spherical rendering video of the Lego using provided test cameras.
+            </p>
+            <div class="image-container">
+                <img src="./media_proj4/tractor_novel_views.gif" alt="Spherical Rendering Video" style="max-width: 80%; height: auto;">
+                <div class="image-caption">Spherical Rendering Video</div>
+            </div>
+        </div>
+
+        <div class="question-section">
+            <div class="question-header">
+                <h2>Part 2.6: Training with Your Own Data</h2>
+            </div>
+            
+            <h3>Novel Views</h3>
+            <p class="explanation">
+                GIF of camera circling the object showing novel views.
+            </p>
+            <div class="image-container">
+                <img id="pichu-gif" src="./media_proj4/pokemon_novel_views.gif" alt="Novel Views GIF" style="max-width: 80%; height: auto;">
+                <div class="image-caption">Pichu Novel Views GIF</div>
+            </div>
+
+            <h3>Code and Hyperparameter Changes</h3>
+            <p class="explanation">
+                For training with my own data, I experimented with different hyperparameters to improve convergence and quality. I also experiemented with learning rate schedules to allow for longer training, modified the number of samples per ray to balance quality and training time, fine-tuned the near and far plane bounds to better fit my scene geometry, and tried different batch sizes to optimize memory usage and training speed. Additionally, I modified the density activation from ReLU to softplus.
+            </p>
+
+            <h3>Training Loss</h3>
+            <p class="explanation">
+                Plot of training loss over 2000 iterations.
+            </p>
+            <div class="image-container">
+                <img src="./media_proj4/pokemon_psnr.png" alt="Training Loss">
+                <div class="image-caption">Training Loss Over Iterations</div>
+            </div>
+
+            <h3>Intermediate Renders</h3>
+            <p class="explanation">
+                Intermediate renders of the scene during training.
+            </p>
+            <div class="image-container">
+                <img src="./media_proj4/pokemon_progression.png" alt="Pokemon Progression">
+                <div class="image-caption">Intermediate Renders of Pichu</div>
+            </div>
+        </div>
+
+        <div class="back-link">
+            <a href="../index.html">🏠 Back to Home</a>
+        </div>
+    </div>
+
+    <script>
+        const pichuGif = document.getElementById('pichu-gif');
+        if (pichuGif) {
+            const originalSrc = pichuGif.src.split('?')[0]; 
+            
+            function forceLoop() {
+                const timestamp = new Date().getTime();
+                pichuGif.src = originalSrc + '?t=' + timestamp;
+            }
+            
+            setInterval(forceLoop, 800);
+            
+        }
+    </script>
+
+</body>
+</html>
+
